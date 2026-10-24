@@ -23,3 +23,20 @@ export function formatDuree(min: number): string {
   if (h === 0) return `${m} min`;
   return m === 0 ? `${h} h` : `${h} h ${String(m).padStart(2, '0')}`;
 }
+
+// ── Jours entiers (AAAA-MM-JJ), calculés en UTC : aucun décalage dû à l'heure d'été ──
+export const dayNum = (iso: string): number => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return Math.round(Date.UTC(y, m - 1, d) / 86_400_000);
+};
+export const fromDayNum = (n: number): string =>
+  new Date(n * 86_400_000).toISOString().slice(0, 10);
+export const addDays = (iso: string, n: number): string => fromDayNum(dayNum(iso) + n);
+/** Nombre de jours de `a` à `b` (positif si `b` est après `a`). */
+export const diffDays = (a: string, b: string): number => dayNum(b) - dayNum(a);
+
+/** « 12 nov. » */
+export function formatShort(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}

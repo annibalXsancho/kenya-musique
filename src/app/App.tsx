@@ -48,13 +48,13 @@ function Shell() {
             </NavLink>
           ))}
         </div>
-        <div className={s.status}>
-          <SyncStatus />
-        </div>
         <Button size="sm" className={s.newDesktop} onClick={newSession}>
           Nouvelle session
         </Button>
       </nav>
+      <div className={s.status}>
+        <SyncStatus />
+      </div>
       <main className={s.main}>
         <Suspense fallback={null}>
           <Routes>
