@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { OutilDB, makeStore } from './index';
+import { exportAll } from './export';
 import { ID_RE } from '../model';
 import { newId } from '../lib/ids';
 
@@ -59,5 +60,18 @@ describe('écritures locales', () => {
 
   it('échoue proprement sur un id inconnu', async () => {
     await expect(store.update('sessions', 'inconnu0000000x', { dureeMin: 5 })).rejects.toThrow();
+  });
+});
+
+describe('export', () => {
+  it('exporte toutes les collections, suppressions logiques comprises', async () => {
+    const a = await store.create('sessions', session);
+    const b = await store.create('sessions', { ...session, intention: 'à supprimer' });
+    await store.remove('sessions', b.id);
+    const out = await exportAll(database);
+    expect(out.app).toBe('outil');
+    expect(Object.keys(out.collections)).toContain('objectifs');
+    expect(out.collections.sessions).toHaveLength(2);
+    expect((out.collections.sessions as { id: string }[]).map((x) => x.id)).toContain(a.id);
   });
 });

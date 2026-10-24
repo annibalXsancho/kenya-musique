@@ -7,3 +7,6 @@ server/pb_data
 server/pocketbase
 server/*.zip
 coverage
+server/pb_public
+server/pb_data
+scripts/deploy.env

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Sheet, SyncIndicator } from '@core/ui';
 import { logout, useUser } from '@core/auth/client';
+import { downloadExport } from '@core/db/export';
 import { syncNow, useSyncStatus } from '@core/sync/manager';
 import s from './SyncStatus.module.css';
 
@@ -33,6 +34,9 @@ export function SyncStatus() {
           </p>
           <Button variant="secondary" onClick={() => void syncNow()} disabled={phase === 'syncing'}>
             {phase === 'syncing' ? 'Synchronisation…' : 'Synchroniser maintenant'}
+          </Button>
+          <Button variant="secondary" onClick={() => void downloadExport()}>
+            Exporter tout (JSON)
           </Button>
           <Button
             variant="ghost"
