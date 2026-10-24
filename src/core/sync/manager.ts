@@ -1,10 +1,10 @@
 import { useSyncExternalStore } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { COLLECTIONS } from '../model';
 import { db, notifyLocalWrite, onLocalWrite } from '../db';
-import { logout, pb, refreshSession } from '../auth/client';
+import { getConfig, logout } from '../auth/client';
 import { createEngine } from './engine';
-import { pocketbaseRemote } from './pocketbaseRemote';
+import { githubApi } from './github';
+import { githubRemote } from './githubRemote';
 import { AuthError, NetworkError } from './types';
 
 type Phase = 'idle' | 'syncing' | 'offline' | 'error';
@@ -20,24 +20,30 @@ const set = (patch: Partial<State>) => {
   listeners.forEach((l) => l());
 };
 
-const engine = createEngine(db, pocketbaseRemote(pb));
+const api = githubApi(() => {
+  const c = getConfig();
+  if (!c) throw new AuthError('Non connecté.');
+  return c;
+});
+const engine = createEngine(db, githubRemote(api));
 
 export async function syncNow(): Promise<void> {
+  if (!getConfig()) return;
   set({ phase: 'syncing' });
   try {
     const r = await engine.sync();
     set({ phase: r.errors > 0 ? 'error' : 'idle', lastSyncAt: new Date().toISOString() });
   } catch (e) {
     if (e instanceof AuthError) {
-      await refreshSession();
-      if (!pb.authStore.isValid) logout(); // session expirée : retour à l'écran de connexion, données locales conservées
-      set({ phase: 'offline' });
+      // Jeton refusé ou expiré : retour à l'écran de connexion, données locales conservées.
+      logout(e.message);
+      set({ phase: 'idle' });
     } else if (e instanceof NetworkError) set({ phase: 'offline' });
     else set({ phase: 'error' });
   }
 }
 
-/** Déclencheurs §8 : ouverture, retour du réseau, après écriture (2 s), toutes les 60 s, temps réel. */
+/** Déclencheurs §8 : ouverture, retour du réseau, après écriture (2 s), toutes les 60 s, retour au premier plan. */
 export function startSync(): () => void {
   let debounce: ReturnType<typeof setTimeout> | undefined;
   const trigger = () => void syncNow();
@@ -47,33 +53,18 @@ export function startSync(): () => void {
   };
   const onVisible = () => document.visibilityState === 'visible' && trigger();
 
-  void refreshSession().then(trigger);
+  trigger();
   const offWrite = onLocalWrite(afterWrite);
   const timer = setInterval(trigger, 60_000);
   window.addEventListener('online', trigger);
   document.addEventListener('visibilitychange', onVisible);
 
-  // Temps réel : un changement distant déclenche une réception (le SDK rétablit la connexion seul).
-  // Abonnements enchaînés un par un : en parallèle, le SDK annule et rouvre la connexion.
-  let stopped = false;
-  void (async () => {
-    for (const c of COLLECTIONS) {
-      if (stopped) return;
-      await pb
-        .collection(c)
-        .subscribe('*', trigger)
-        .catch(() => undefined);
-    }
-  })();
-
   return () => {
-    stopped = true;
     clearTimeout(debounce);
     clearInterval(timer);
     offWrite();
     window.removeEventListener('online', trigger);
     document.removeEventListener('visibilitychange', onVisible);
-    void pb.realtime.unsubscribe().catch(() => undefined);
   };
 }
 

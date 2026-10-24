@@ -119,21 +119,25 @@ describe('synchronisation', () => {
 
   it('ignore un document distant invalide sans bloquer le reste', async () => {
     const a = device(remote);
-    await remote.push('sessions', {
-      id: 'zzzzzzzzzzzzzzz',
-      updatedAt: '2026-10-24T10:00:00.000Z',
-      deleted: false,
-      dureeMin: -4,
-    });
-    await remote.push('sessions', {
-      id: 'yyyyyyyyyyyyyyy',
-      createdAt: '2026-10-24T10:00:00.000Z',
-      updatedAt: '2026-10-24T10:00:00.000Z',
-      deleted: false,
-      date: '2026-10-24',
-      dureeMin: 5,
-      type: 'pratique',
-    });
+    await remote.push('sessions', [
+      {
+        id: 'zzzzzzzzzzzzzzz',
+        updatedAt: '2026-10-24T10:00:00.000Z',
+        deleted: false,
+        dureeMin: -4,
+      },
+    ]);
+    await remote.push('sessions', [
+      {
+        id: 'yyyyyyyyyyyyyyy',
+        createdAt: '2026-10-24T10:00:00.000Z',
+        updatedAt: '2026-10-24T10:00:00.000Z',
+        deleted: false,
+        date: '2026-10-24',
+        dureeMin: 5,
+        type: 'pratique',
+      },
+    ]);
     const report = await a.engine.sync();
     expect(report.errors).toBe(1);
     expect(await a.db.table('sessions').count()).toBe(1);

@@ -174,7 +174,9 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
                 <button
                   type="button"
                   className={s.fileName}
-                  onClick={() => openFichier(f.id).catch((e: Error) => setFileError(e.message))}
+                  onClick={() =>
+                    openFichier(f.id, f.name).catch((e: Error) => setFileError(e.message))
+                  }
                 >
                   {f.name}
                 </button>

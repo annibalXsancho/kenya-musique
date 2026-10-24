@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Button, Field } from '@core/ui';
-import { login } from '@core/auth/client';
+import { getNotice, login } from '@core/auth/client';
 import s from './LoginPage.module.css';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [repo, setRepo] = useState('');
+  const [token, setToken] = useState('');
+  const [error, setError] = useState(getNotice());
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -14,7 +14,7 @@ export function LoginPage() {
     setBusy(true);
     setError('');
     try {
-      await login(email, password);
+      await login(repo, token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connexion impossible.');
     } finally {
@@ -26,30 +26,41 @@ export function LoginPage() {
     <main className={s.wrap}>
       <div className={s.card}>
         <h1 className={s.title}>Outil</h1>
-        <p>Connecte-toi pour synchroniser tes appareils.</p>
+        <p>
+          Tes données vivent dans un dépôt GitHub <strong>privé</strong>. Crée un jeton{' '}
+          <a
+            href="https://github.com/settings/personal-access-tokens/new"
+            target="_blank"
+            rel="noreferrer"
+          >
+            fine-grained
+          </a>{' '}
+          limité à ce dépôt, avec « Contents : Read and write ».
+        </p>
         <form className={s.form} onSubmit={submit}>
           <Field
-            label="E-mail"
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            label="Dépôt de données"
+            placeholder="ton-pseudo/outil-data"
+            value={repo}
+            onChange={(e) => setRepo(e.target.value)}
             autoFocus
+            autoCapitalize="none"
+            autoCorrect="off"
           />
           <Field
-            label="Mot de passe"
+            label="Jeton d’accès"
             type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="off"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
           />
           {error && (
             <p role="alert" className={s.error}>
               {error}
             </p>
           )}
-          <Button type="submit" disabled={busy || !email || !password}>
-            {busy ? 'Connexion…' : 'Se connecter'}
+          <Button type="submit" disabled={busy || !repo || !token}>
+            {busy ? 'Vérification…' : 'Se connecter'}
           </Button>
         </form>
       </div>

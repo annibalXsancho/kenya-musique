@@ -1,99 +1,64 @@
-# Mise en ligne (S4) : pas à pas
+# Mise en ligne (S4) : GitHub Pages + dépôt privé
 
-Objectif : l'app tourne sur une VM Oracle Always Free (Paris), invisible d'internet, accessible uniquement via Tailscale en HTTPS, installée sur l'iPhone comme une app.
+L'app est servie par **GitHub Pages** (le code). Tes données ne sont **pas** dans ce dépôt : elles vivent dans un second dépôt, **privé**, que l'app lit et écrit avec un jeton d'accès. Aucun serveur à gérer.
 
-**Ce qui est déjà prêt dans le dépôt** : PWA (manifeste, icônes, service worker), bouton « Exporter tout », sauvegarde nocturne PocketBase, `scripts/server-install.sh`, `scripts/deploy.sh`, `scripts/backup-pull.mjs`, `deploy/outil.service`.
+Ce qui est déjà prêt : l'app, la PWA, le workflow de déploiement (`.github/workflows/pages.yml`), l'export JSON.
+Ce que seul toi peux faire : créer les dépôts, le jeton, activer Pages. Compte une quinzaine de minutes.
 
-**Ce que seul toi peux faire** (comptes, cartes bancaires, choix de sécurité) : les étapes 1, 2, 4, 6, 7 et 9 ci-dessous.
+## ⚠️ À savoir avant de publier le code
 
----
+Pour que Pages soit gratuit, **le dépôt du code doit être public** (Pages sur dépôt privé demande un abonnement payant). Donc :
 
-## 1. Compte Oracle Cloud (toi)
+- Le code est lisible par tous, **y compris `CLAUDE.md`** (plan, décisions, ta section « Notes d'Enzo ») et tout l'historique git.
+- Les commits portent l'adresse e-mail de l'auteur. Pour la masquer : GitHub → Settings → Emails → « Keep my email addresses private », puis `git config user.email "<id>+<pseudo>@users.noreply.github.com"`.
+- Tes **données** restent privées (dépôt séparé). Ne mets jamais de jeton ni de données dans le dépôt public.
 
-1. Crée le compte sur cloud.oracle.com. **Région d'origine : France Sud (Paris) / `eu-paris-1`. Ce choix est définitif.**
-2. Une carte bancaire est demandée pour vérifier l'identité. Tant que tu restes dans les ressources « Always Free », rien n'est débité.
+Si tu préfères que `CLAUDE.md` reste privé, dis-le-moi : je le sors du dépôt public.
 
-## 2. Politique de récupération des VM inactives (décision à prendre)
+## 1. Créer les deux dépôts (toi)
 
-Oracle peut récupérer une instance Always Free jugée **inactive** : sur 7 jours, si le 95e centile du CPU **et** du réseau (et de la mémoire pour les VM Ampere A1) reste sous 20 %. Notre app sera très calme, donc **le risque est réel**.
+Sur github.com → New repository :
 
-| Parade | Effet | Contrepartie |
+| Dépôt | Visibilité | Contenu |
 |---|---|---|
-| **A. Passer le compte en « Pay As You Go »** (recommandé) | D'après une communication Oracle de 2023, une instance n'est alors plus récupérée ; rien n'est facturé tant que l'usage reste dans les limites Always Free | Compte lié à une carte ; à surveiller (budget alerte à 1 €) |
-| B. Rester en Always Free pur | 0 € garanti | Risque de perdre la VM : les sauvegardes (étape 8) permettent de tout restaurer |
+| `outil` | **Public** | le code de l'app (créé vide : ni README ni licence) |
+| `outil-data` | **Privé** | tes données. **Coche « Add a README »** (le dépôt ne doit pas être vide) |
 
-La source citée est une reprise tierce d'un avis de 2023 : relis la page officielle « Always Free Resources » avant de choisir. **À noter ensuite en §11 du CLAUDE.md.**
-
-## 3. Créer la VM (toi)
-
-- Image **Ubuntu 24.04**, forme **VM.Standard.A1.Flex** (Ampere, 1 OCPU, 6 Go) ou `VM.Standard.E2.1.Micro` si A1 est indisponible. Les deux suffisent largement.
-- Ajoute ta clé SSH publique.
-- Note l'IP publique, uniquement pour la première connexion.
-
-## 4. Installer le serveur (toi, 5 minutes)
-
-Depuis le dossier du projet sur le Mac :
+## 2. Envoyer le code (toi, depuis le dossier du projet)
 
 ```bash
-scp scripts/server-install.sh deploy/outil.service ubuntu@<IP-PUBLIQUE>:
-ssh ubuntu@<IP-PUBLIQUE> "bash server-install.sh $(cat server/VERSION)"
+git remote add origin https://github.com/<ton-pseudo>/outil.git
+git push -u origin main
 ```
 
-Le script télécharge PocketBase (somme de contrôle vérifiée), crée l'utilisateur système `outil`, installe le service et le démarre sur `127.0.0.1:8090` (non joignable de l'extérieur).
+## 3. Activer Pages (toi)
 
-## 5. Tailscale (toi)
+Dépôt `outil` → **Settings → Pages → Source : GitHub Actions**. Le workflow se lance au push (onglet Actions) ; l'adresse apparaît à la fin : `https://<ton-pseudo>.github.io/outil/`.
 
-1. Compte sur tailscale.com avec un fournisseur d'identité **protégé par la double authentification** (GitHub, Apple ou Microsoft : pas Google, cf. CLAUDE.md §3).
-2. Console d'administration → **DNS** : active **MagicDNS** et **HTTPS Certificates**.
-3. Sur la VM :
-   ```bash
-   curl -fsSL https://tailscale.com/install.sh | sh
-   sudo tailscale up --hostname=outil --ssh
-   sudo tailscale serve --bg 8090
-   ```
-   `tailscale serve` donne l'adresse HTTPS : `https://outil.<ton-tailnet>.ts.net`.
-4. Installe l'app Tailscale sur le Mac et sur l'iPhone, connectés au même compte.
-5. Vérifie que `ssh ubuntu@outil` fonctionne **via Tailscale**, puis, dans la console Oracle, **supprime la règle d'entrée SSH (port 22)** de la liste de sécurité : plus rien n'est exposé sur internet.
+## 4. Créer le jeton (toi)
 
-> Sur l'iPhone, l'app n'est joignable que si Tailscale est actif (VPN). Hors ligne ou VPN coupé, l'app s'ouvre quand même avec les données locales ; la synchro reprend au retour du réseau.
+github.com → Settings → Developer settings → **Fine-grained personal access tokens → Generate** :
 
-## 6. Créer le superuser et ton compte (toi)
+- *Repository access* : **Only select repositories → `outil-data`** uniquement.
+- *Permissions → Repository → Contents : Read and write*.
+- Expiration : 1 an maximum (note la date : à l'expiration, l'app te redemande un jeton ; tes données locales sont conservées).
+- **Active la double authentification sur ton compte GitHub** (Settings → Password and authentication) : c'est ton second facteur.
 
-```bash
-ssh ubuntu@outil
-sudo -u outil /opt/outil/pocketbase --dir=/opt/outil/pb_data superuser upsert <ton-email> '<mot-de-passe-long-et-unique>'
-```
+## 5. Se connecter (toi, sur chaque appareil)
 
-Ouvre ensuite `https://outil.<ton-tailnet>.ts.net/_/`, connecte-toi, puis crée ton utilisateur dans la collection **users** (c'est lui qui se connecte dans l'app). L'inscription publique est fermée.
+Ouvre `https://<ton-pseudo>.github.io/outil/`, saisis `<ton-pseudo>/outil-data` et le jeton. L'app refuse un dépôt public.
 
-## 7. Déployer (Mac)
+**iPhone** : Safari → Partager → **Sur l'écran d'accueil**. Mode avion → crée une session → réseau rétabli : l'indicateur passe de « Hors ligne » à « Synchronisé ».
 
-```bash
-cp scripts/deploy.env.example scripts/deploy.env   # puis renseigne DEPLOY_HOST et APP_URL
-npm run deploy -- --dry-run                        # simulation
-npm run deploy                                     # build + copie + redémarrage
-```
+## Sauvegardes
 
-## 8. Sauvegardes
+- L'**historique git** de `outil-data` est ta sauvegarde : chaque synchro est un commit, rien n'est supprimé définitivement.
+- Copie locale sur le Mac : `git clone --mirror https://github.com/<ton-pseudo>/outil-data.git ~/Backups/outil-data.git` (puis `git remote update` dans ce dossier pour la rafraîchir).
+- Export manuel : bouton **Exporter tout (JSON)** dans l'indicateur de synchro en haut de l'app.
 
-- **Nocturne sur le serveur** : déjà configurée par migration (3 h, 14 copies conservées dans `pb_data/backups`).
-- **Copie hors serveur sur le Mac** : `scripts/backup-pull.mjs` déclenche une sauvegarde fraîche et télécharge les manquantes dans `~/Backups/outil` (30 conservées).
-  ```bash
-  PB_URL=https://outil.<ton-tailnet>.ts.net PB_SUPERUSER_EMAIL=… PB_SUPERUSER_PASSWORD=… npm run backup
-  ```
-  À planifier chaque jour (launchd ou cron) ; garde le mot de passe dans le Trousseau ou un fichier non versionné, jamais dans le dépôt.
-- **Export manuel** : bouton **Exporter tout (JSON)** dans l'indicateur de synchro (en haut), format lisible hors de l'app.
-- **Restaurer** : arrêter le service, remplacer `pb_data` par le contenu d'un zip de sauvegarde, redémarrer.
+## Limites à connaître
 
-## 9. Double authentification (décision à prendre)
-
-PocketBase ne propose pas de code TOTP intégré. Son « MFA » exige un second facteur par **e-mail (OTP)** ou OAuth2 : l'e-mail impose un service SMTP tiers, ce qui s'oppose à la règle « aucun service tiers » du CLAUDE.md.
-
-**Proposition** : le second facteur est **Tailscale**. Le serveur n'est visible que des appareils autorisés sur ton tailnet, dont le compte est protégé par la double authentification du fournisseur d'identité (étape 5). Ajoute un mot de passe long et unique pour l'utilisateur et le superuser. Si tu préfères le MFA e-mail de PocketBase, il faudra choisir un fournisseur SMTP.
-
-## 10. Installer sur l'iPhone et vérifier
-
-1. Tailscale actif sur l'iPhone, ouvre l'adresse `https://outil.<ton-tailnet>.ts.net` dans **Safari**.
-2. Connecte-toi, puis **Partager → Sur l'écran d'accueil**.
-3. Lance l'app depuis l'icône, passe en mode avion, crée une session, rallume le réseau : l'indicateur doit passer de « Hors ligne » à « Synchronisé ».
-4. Vérifie en 4G (Tailscale actif) et la synchro avec le Mac.
+- Pas de temps réel : la synchro se fait à l'ouverture, après chaque écriture (2 s), toutes les minutes et au retour au premier plan.
+- Fichiers joints : 25 Mo maximum chacun.
+- Le jeton est stocké dans le navigateur de chaque appareil. Il est limité à `outil-data` (Contents seulement). N'héberge pas d'autres sites non fiables sur `<ton-pseudo>.github.io` : ils partagent la même origine.
+- Si tu modifies une même session sur deux appareils hors ligne, la version modifiée en dernier gagne.

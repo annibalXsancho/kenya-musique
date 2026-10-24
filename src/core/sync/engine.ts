@@ -54,25 +54,37 @@ export function createEngine(db: OutilDB, remote: Remote) {
   async function push(): Promise<{ pushed: number; errors: number }> {
     let pushed = 0;
     let errors = 0;
+    // Les entrées sont regroupées par collection : un seul envoi par collection.
+    const groups = new Map<CollectionName, { seq: number; doc: AnyDoc }[]>();
     for (const entry of await db.outbox.orderBy('seq').toArray()) {
       const doc = (await db.table(entry.collection).get(entry.recordId)) as AnyDoc | undefined;
       if (!doc) {
         await db.outbox.delete(entry.seq!);
         continue;
       }
+      const list = groups.get(entry.collection) ?? [];
+      list.push({ seq: entry.seq!, doc });
+      groups.set(entry.collection, list);
+    }
+    for (const [collection, items] of groups) {
       try {
-        await remote.push(entry.collection, doc);
+        await remote.push(
+          collection,
+          items.map((i) => i.doc),
+        );
       } catch (e) {
         if (e instanceof NetworkError || e instanceof AuthError) throw e;
-        errors++;
+        errors += items.length;
         continue;
       }
       // Retire l'entrée seulement si l'enregistrement n'a pas été modifié pendant l'envoi.
-      await db.transaction('rw', db.table(entry.collection), db.outbox, async () => {
-        const now = (await db.table(entry.collection).get(entry.recordId)) as AnyDoc | undefined;
-        if (!now || now.updatedAt === doc.updatedAt) await db.outbox.delete(entry.seq!);
+      await db.transaction('rw', db.table(collection), db.outbox, async () => {
+        for (const { seq, doc } of items) {
+          const now = (await db.table(collection).get(doc.id)) as AnyDoc | undefined;
+          if (!now || now.updatedAt === doc.updatedAt) await db.outbox.delete(seq);
+        }
       });
-      pushed++;
+      pushed += items.length;
     }
     return { pushed, errors };
   }

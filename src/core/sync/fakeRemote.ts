@@ -27,14 +27,16 @@ export class FakeRemote implements Remote {
     return { docs, cursor: last };
   }
 
-  async push(collection: CollectionName, doc: AnyDoc) {
+  async push(collection: CollectionName, docs: AnyDoc[]) {
     this.check();
     this.pushCalls++;
     await this.onPush?.();
-    const key = `${collection}/${doc.id}`;
-    const existing = this.rows.get(key);
-    if (existing && existing.doc.updatedAt >= doc.updatedAt) return;
-    this.rows.set(key, { doc: structuredClone(doc), seq: ++this.seq });
+    for (const doc of docs) {
+      const key = `${collection}/${doc.id}`;
+      const existing = this.rows.get(key);
+      if (existing && existing.doc.updatedAt >= doc.updatedAt) continue;
+      this.rows.set(key, { doc: structuredClone(doc), seq: ++this.seq });
+    }
   }
 
   async uploadFile(id: string, _name: string, blob: Blob) {

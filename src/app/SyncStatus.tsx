@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Sheet, SyncIndicator } from '@core/ui';
-import { logout, useUser } from '@core/auth/client';
+import { logout, useAccount } from '@core/auth/client';
 import { downloadExport } from '@core/db/export';
 import { syncNow, useSyncStatus } from '@core/sync/manager';
 import s from './SyncStatus.module.css';
@@ -8,7 +8,7 @@ import s from './SyncStatus.module.css';
 /** Indicateur discret de synchro ; un clic ouvre le compte (synchroniser, se déconnecter). */
 export function SyncStatus() {
   const { status, pending, phase, lastSyncAt } = useSyncStatus();
-  const user = useUser();
+  const account = useAccount();
   const [open, setOpen] = useState(false);
   const state = status === 'pending' ? { status, count: pending } : ({ status } as const);
 
@@ -24,7 +24,7 @@ export function SyncStatus() {
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Compte">
         <div className={s.body}>
-          <p>Connecté en tant que {user?.email}</p>
+          <p>Données dans le dépôt privé {account?.repo}</p>
           <p>
             {lastSyncAt
               ? `Dernière synchro : ${new Date(lastSyncAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`

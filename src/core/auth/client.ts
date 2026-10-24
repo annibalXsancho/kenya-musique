@@ -1,62 +1,95 @@
-import PocketBase, { ClientResponseError } from 'pocketbase';
 import { useSyncExternalStore } from 'react';
+import type { GithubConfig } from '../sync/github';
 
-/** Même origine que l'app : proxy Vite en dev, PocketBase lui-même en production. */
-export const pb = new PocketBase(window.location.origin);
-pb.autoCancellation(false);
+/**
+ * « Connexion » = dépôt de données + jeton d'accès GitHub, gardés dans ce navigateur (localStorage).
+ * Le jeton n'est envoyé qu'à api.github.com. Un jeton « fine-grained » limité à UN dépôt (Contents : lecture/écriture)
+ * est conseillé : s'il fuite, seules les données de l'outil sont concernées.
+ */
+const KEY = 'outil.github';
 
-export interface CurrentUser {
-  id: string;
-  email: string;
-}
-
-function snapshot(): CurrentUser | null {
-  const r = pb.authStore.record;
-  return r ? { id: r.id, email: String(r.email ?? '') } : null;
-}
-
-// Snapshot stable tant que la session ne change pas (exigence de useSyncExternalStore).
-let cached = snapshot();
-function current(): CurrentUser | null {
-  const next = snapshot();
-  if (next?.id !== cached?.id) cached = next;
-  return cached;
-}
-const subscribe = (cb: () => void) => pb.authStore.onChange(cb);
-
-/** Utilisateur connecté (session conservée dans le navigateur, y compris hors ligne). */
-export function useUser(): CurrentUser | null {
-  return useSyncExternalStore(subscribe, current);
-}
-
-export async function login(email: string, password: string): Promise<void> {
+function load(): GithubConfig | null {
   try {
-    await pb.collection('users').authWithPassword(email.trim(), password);
-  } catch (e) {
-    if (e instanceof ClientResponseError) {
-      if (e.status === 0)
-        throw new Error('Serveur injoignable. Vérifie la connexion.', { cause: e });
-      if (e.status === 400 || e.status === 401)
-        throw new Error('E-mail ou mot de passe incorrect.', { cause: e });
-    }
-    throw new Error('Connexion impossible.', { cause: e });
+    const v = JSON.parse(localStorage.getItem(KEY) ?? 'null');
+    return v?.repo && v?.token
+      ? { repo: v.repo, token: v.token, ...(v.apiBase ? { apiBase: v.apiBase } : {}) }
+      : null;
+  } catch {
+    return null;
   }
 }
 
-export function logout(): void {
-  pb.authStore.clear();
+let config = load();
+let notice = '';
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
+
+export const getConfig = () => config;
+export const getNotice = () => notice;
+
+export interface Account {
+  repo: string;
+}
+let account: Account | null = config ? { repo: config.repo } : null;
+const snapshot = () => account;
+const subscribe = (cb: () => void) => {
+  listeners.add(cb);
+  return () => void listeners.delete(cb);
+};
+
+/** Compte connecté sur cet appareil (reste utilisable hors ligne). */
+export function useAccount(): Account | null {
+  return useSyncExternalStore(subscribe, snapshot);
 }
 
-/** Renouvelle le jeton à l'ouverture. Hors ligne : on garde la session. Compte supprimé : on la ferme. */
-export async function refreshSession(): Promise<void> {
-  if (!pb.authStore.record) return;
+function setConfig(next: GithubConfig | null, why = '') {
+  config = next;
+  notice = why;
+  account = next ? { repo: next.repo } : null;
   try {
-    await pb.collection('users').authRefresh();
-  } catch (e) {
-    if (
-      e instanceof ClientResponseError &&
-      (e.status === 401 || e.status === 403 || e.status === 404)
-    )
-      logout();
+    if (next) localStorage.setItem(KEY, JSON.stringify(next));
+    else localStorage.removeItem(KEY);
+  } catch {
+    /* stockage indisponible : la session ne survivra pas au rechargement */
   }
+  emit();
+}
+
+const REPO_RE = /^[\w.-]+\/[\w.-]+$/;
+
+/** Vérifie le dépôt et le jeton, puis enregistre la connexion. Refuse un dépôt public. */
+export async function login(repo: string, token: string): Promise<void> {
+  const r = repo
+    .trim()
+    .replace(/^https:\/\/github\.com\//, '')
+    .replace(/\.git$/, '')
+    .replace(/\/$/, '');
+  const t = token.trim();
+  if (!REPO_RE.test(r)) throw new Error('Dépôt invalide : écris « propriétaire/dépôt ».');
+  let res: Response;
+  try {
+    res = await fetch(`https://api.github.com/repos/${r}`, {
+      headers: { Authorization: `Bearer ${t}`, Accept: 'application/vnd.github+json' },
+      cache: 'no-store',
+    });
+  } catch (e) {
+    throw new Error('GitHub injoignable. Vérifie la connexion.', { cause: e });
+  }
+  if (res.status === 401) throw new Error('Jeton refusé.');
+  if (res.status === 404 || res.status === 403)
+    throw new Error('Dépôt introuvable, ou le jeton n’y a pas accès.');
+  if (!res.ok) throw new Error(`GitHub a répondu ${res.status}.`);
+  const info = (await res.json()) as { private?: boolean; permissions?: { push?: boolean } };
+  if (!info.private)
+    throw new Error(
+      'Ce dépôt est public : tes données seraient visibles de tous. Utilise un dépôt privé.',
+    );
+  if (info.permissions && !info.permissions.push)
+    throw new Error('Le jeton n’a pas le droit d’écrire dans ce dépôt.');
+  setConfig({ repo: r, token: t });
+}
+
+/** Déconnecte cet appareil. Les données locales sont conservées. */
+export function logout(why = ''): void {
+  setConfig(null, why);
 }

@@ -1,6 +1,6 @@
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
-/** Identifiant de 15 caractères [a-z0-9], format PocketBase, généré côté client. */
+/** Identifiant de 15 caractères [a-z0-9], généré côté client. */
 export function newId(): string {
   let out = '';
   while (out.length < 15) {
