@@ -12,8 +12,25 @@ export interface OutboxEntry {
   at: string;
 }
 
+/** Fichier de livrable conservé localement ; envoyé au serveur dès que le réseau le permet. */
+export interface BlobEntry {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  blob: Blob;
+  status: 'pending' | 'done';
+}
+
+export interface MetaEntry {
+  key: string;
+  value: string;
+}
+
 export class OutilDB extends Dexie {
   outbox!: Table<OutboxEntry, number>;
+  meta!: Table<MetaEntry, string>;
+  blobs!: Table<BlobEntry, string>;
 
   constructor(name = 'outil') {
     super(name);
@@ -30,6 +47,8 @@ export class OutilDB extends Dexie {
       reglages: 'id, updatedAt',
       outbox: '++seq, [collection+recordId]',
     });
+    // v2 (S3) : curseurs de synchro et fichiers en attente d'envoi.
+    this.version(2).stores({ meta: 'key', blobs: 'id, status' });
   }
 }
 
@@ -37,6 +56,14 @@ export const db = new OutilDB();
 
 // Demande au navigateur de ne pas purger la base locale (utile sur iOS).
 void navigator.storage?.persist?.();
+
+// Notifie le moteur de synchro qu'une écriture locale vient d'avoir lieu (envoi après anti-rebond).
+const writeListeners = new Set<() => void>();
+export const notifyLocalWrite = () => writeListeners.forEach((cb) => cb());
+export function onLocalWrite(cb: () => void): () => void {
+  writeListeners.add(cb);
+  return () => void writeListeners.delete(cb);
+}
 
 const tables = (database: OutilDB, c: CollectionName) => [database.table(c), database.outbox];
 
@@ -67,6 +94,7 @@ export function makeStore(database: OutilDB) {
       await database.table(c).add(doc);
       await enqueue(database, c, id);
     });
+    notifyLocalWrite();
     return doc;
   }
 
@@ -75,7 +103,7 @@ export function makeStore(database: OutilDB) {
     id: string,
     patch: Partial<CreateInput<C>> & { deleted?: boolean },
   ): Promise<Doc<C>> {
-    return database.transaction('rw', tables(database, c), async () => {
+    const doc = await database.transaction('rw', tables(database, c), async () => {
       const current = await database.table(c).get(id);
       if (!current) throw new Error(`${c}/${id} introuvable`);
       const doc = (schemas[c] as unknown as { parse(v: unknown): Doc<C> }).parse({
@@ -89,6 +117,8 @@ export function makeStore(database: OutilDB) {
       await enqueue(database, c, id);
       return doc;
     });
+    notifyLocalWrite();
+    return doc;
   }
 
   const remove = <C extends CollectionName>(c: C, id: string) =>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Field, Segmented, Select } from '@core/ui';
+import { addFichier, openFichier } from '@core/sync/files';
 import type { CreateInput, Session } from '@core/model';
 import s from '../Journal.module.css';
 
@@ -20,7 +21,7 @@ const lines = (t: string) =>
     .map((l) => l.trim())
     .filter(Boolean);
 
-function parseLivrables(text: string): Data['livrables'] {
+function parseLivrables(text: string): NonNullable<Data['livrables']> {
   return lines(text).map((l) => {
     const [a, b] = l.split('|').map((x) => x.trim());
     const url = b ?? (/^https?:\/\//.test(a) ? a : undefined);
@@ -30,7 +31,10 @@ function parseLivrables(text: string): Data['livrables'] {
 }
 
 const formatLivrables = (l: Session['livrables']) =>
-  l.map((x) => (x.url ? `${x.label} | ${x.url}` : x.label)).join('\n');
+  l
+    .filter((x) => !x.fichier)
+    .map((x) => (x.url ? `${x.label} | ${x.url}` : x.label))
+    .join('\n');
 
 export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDelete }: Props) {
   const [date, setDate] = useState(initial?.date ?? defaults.date);
@@ -42,6 +46,12 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
   const [plus, setPlus] = useState(initial?.plus.join('\n') ?? '');
   const [moins, setMoins] = useState(initial?.moins.join('\n') ?? '');
   const [livrables, setLivrables] = useState(initial ? formatLivrables(initial.livrables) : '');
+  const [fichiers, setFichiers] = useState(
+    (initial?.livrables ?? [])
+      .filter((l) => l.fichier)
+      .map((l) => ({ id: l.fichier!, name: l.label })),
+  );
+  const [fileError, setFileError] = useState('');
   const [note, setNote] = useState(initial?.note ?? '');
 
   const dureeMin = Number(duree);
@@ -50,6 +60,18 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
     value: t,
     label: t,
   }));
+
+  async function attach(files: FileList | null) {
+    setFileError('');
+    for (const f of Array.from(files ?? [])) {
+      try {
+        const added = await addFichier(f);
+        setFichiers((prev) => [...prev, added]);
+      } catch (e) {
+        setFileError(e instanceof Error ? e.message : 'Ajout impossible.');
+      }
+    }
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,7 +85,10 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
       sprintId: sprintId || undefined,
       plus: lines(plus),
       moins: lines(moins),
-      livrables: parseLivrables(livrables),
+      livrables: [
+        ...parseLivrables(livrables),
+        ...fichiers.map((f) => ({ label: f.name, fichier: f.id })),
+      ],
       note: note.trim(),
     });
   }
@@ -76,6 +101,7 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
         value={intention}
         onChange={(e) => setIntention(e.target.value)}
         autoFocus={!initial}
+        onFocus={(e) => !initial && e.target.select()}
       />
       <div className={s.two}>
         <Field
@@ -141,6 +167,39 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
             onChange={(e) => setLivrables(e.target.value)}
             hint="Un lien par ligne, ou « libellé | https://… »"
           />
+          <div>
+            <div className={s.legend}>Fichiers</div>
+            {fichiers.map((f) => (
+              <div key={f.id} className={s.file}>
+                <button
+                  type="button"
+                  className={s.fileName}
+                  onClick={() => openFichier(f.id).catch((e: Error) => setFileError(e.message))}
+                >
+                  {f.name}
+                </button>
+                <button
+                  type="button"
+                  className={s.fileRemove}
+                  aria-label={`Retirer ${f.name}`}
+                  onClick={() => setFichiers((prev) => prev.filter((x) => x.id !== f.id))}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <input
+              type="file"
+              multiple
+              onChange={(e) => void attach(e.target.files)}
+              className={s.fileInput}
+            />
+            {fileError && (
+              <p role="alert" className={s.fileError}>
+                {fileError}
+              </p>
+            )}
+          </div>
           <Field label="Note" multiline value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
       </details>
