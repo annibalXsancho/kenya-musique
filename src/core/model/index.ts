@@ -69,6 +69,7 @@ export const schemas = {
     fin: day.optional(),
     statut: sprintStatut.default('backlog'),
     estimationMin: z.number().int().optional(),
+    note: z.string().default(''),
     taches: z
       .array(z.object({ id: idSchema, texte: z.string(), fait: z.boolean().default(false) }))
       .default([]),

@@ -75,3 +75,31 @@ describe('export', () => {
     expect((out.collections.sessions as { id: string }[]).map((x) => x.id)).toContain(a.id);
   });
 });
+
+describe('import', () => {
+  it('importe avec les ids fournis, sans doublon à la seconde passe', async () => {
+    const { importData } = await import('./import');
+    const file = {
+      app: 'outil',
+      collections: {
+        phases: [{ id: 'aaaaaaaaaaaaaaa', nom: 'P', debut: '2026-09-01', fin: '2026-12-31' }],
+        sprints: [
+          {
+            id: 'bbbbbbbbbbbbbbb',
+            phaseId: 'aaaaaaaaaaaaaaa',
+            numero: 1,
+            sujet: 'S',
+            debut: '2026-09-01',
+            fin: '2026-09-30',
+          },
+        ],
+      },
+    };
+    // `importData` écrit dans la base par défaut : on vérifie le contrat via un export de la même forme
+    const first = await importData(file);
+    expect(first.added).toEqual({ phases: 1, sprints: 1 });
+    const second = await importData(file);
+    expect(second).toEqual({ added: {}, skipped: 2 });
+    await expect(importData({ collections: { phases: [{ id: 'x' }] } })).rejects.toThrow();
+  });
+});

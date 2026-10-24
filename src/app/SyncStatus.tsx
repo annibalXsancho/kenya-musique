@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button, Sheet, SyncIndicator } from '@core/ui';
 import { logout, useAccount } from '@core/auth/client';
 import { downloadExport } from '@core/db/export';
+import { importData } from '@core/db/import';
 import { syncNow, useSyncStatus } from '@core/sync/manager';
 import s from './SyncStatus.module.css';
 
@@ -10,6 +11,20 @@ export function SyncStatus() {
   const { status, pending, phase, lastSyncAt } = useSyncStatus();
   const account = useAccount();
   const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  async function onFile(file: File | undefined) {
+    if (!file) return;
+    try {
+      const report = await importData(JSON.parse(await file.text()));
+      const n = Object.values(report.added).reduce((a, b) => a + b, 0);
+      setMessage(`${n} élément(s) importé(s), ${report.skipped} déjà présent(s).`);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'Import impossible.');
+    }
+    if (fileInput.current) fileInput.current.value = '';
+  }
   const state = status === 'pending' ? { status, count: pending } : ({ status } as const);
 
   return (
@@ -38,6 +53,17 @@ export function SyncStatus() {
           <Button variant="secondary" onClick={() => void downloadExport()}>
             Exporter tout (JSON)
           </Button>
+          <Button variant="secondary" onClick={() => fileInput.current?.click()}>
+            Importer (JSON)
+          </Button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(e) => void onFile(e.target.files?.[0])}
+          />
+          {message && <p role="status">{message}</p>}
           <Button
             variant="ghost"
             onClick={() => {

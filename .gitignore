@@ -7,3 +7,6 @@ coverage
 tsconfig.tsbuildinfo
 .tools
 CLAUDE.md
+
+# Données personnelles à importer (ne jamais publier)
+pilotage-import.json

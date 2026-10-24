@@ -69,6 +69,7 @@ function Step({ etape }: { etape: Etape }) {
             transition={{ duration: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
           >
             <div className={s.stepInner}>
+              {etape.note && <p className={s.muted}>{etape.note}</p>}
               {etape.taches.length > 0 && (
                 <ProgressBar value={stepRatio(etape)} label={`Avancement de ${etape.titre}`} />
               )}
