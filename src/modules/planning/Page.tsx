@@ -81,7 +81,6 @@ export default function Page() {
             selectedId={panel?.kind === 'sprint' ? panel.id : undefined}
             onSprint={(id) => setPanel({ kind: 'sprint', id })}
             onPhase={(id) => setPanel({ kind: 'phase', id })}
-            onIndispo={() => setPanel({ kind: 'indispos' })}
           />
           <ul className={s.legend} aria-label="Légende">
             <li>
@@ -92,9 +91,6 @@ export default function Page() {
             </li>
             <li>
               <i className={`${s.swatch} ${s.swBacklog}`} /> Backlog
-            </li>
-            <li>
-              <i className={`${s.swatch} ${s.swHatch}`} /> Indisponible
             </li>
           </ul>
         </>

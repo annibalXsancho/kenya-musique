@@ -42,26 +42,6 @@
   white-space: nowrap;
 }
 
-.unavail {
-  position: absolute;
-  z-index: 1;
-  padding: 0;
-  border: 0;
-  cursor: pointer;
-  background: repeating-linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--text-2) 35%, transparent) 0 2px,
-    transparent 2px 7px
-  );
-}
-.unavail:hover {
-  background: repeating-linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent) 55%, transparent) 0 2px,
-    transparent 2px 7px
-  );
-}
-
 .phase {
   position: absolute;
   z-index: 2;
@@ -206,13 +186,6 @@
 .swBacklog {
   outline: 1.5px dashed var(--text-2);
   outline-offset: -1.5px;
-}
-.swHatch {
-  background: repeating-linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--text-2) 55%, transparent) 0 2px,
-    transparent 2px 5px
-  );
 }
 
 /* ── Panneaux ── */

@@ -13,7 +13,6 @@ interface Props {
   selectedId?: string;
   onSprint: (id: string) => void;
   onPhase: (id: string) => void;
-  onIndispo: () => void;
 }
 
 const HEAD = 30;
@@ -29,7 +28,6 @@ export function Timeline({
   selectedId,
   onSprint,
   onPhase,
-  onIndispo,
 }: Props) {
   const dates = [
     ...phases.flatMap((p) => [p.debut, p.fin]),
@@ -62,23 +60,6 @@ export function Timeline({
           >
             <span className={s.monthLabel}>{m.label}</span>
           </div>
-        ))}
-
-        {indispos.map((u) => (
-          <button
-            key={u.id}
-            type="button"
-            className={s.unavail}
-            style={{
-              left: xOf(u.debut, start, ppd),
-              width: widthOf(u.debut, u.fin, ppd),
-              top: HEAD,
-              height: height - HEAD,
-            }}
-            title={`${u.libelle}`}
-            aria-label={`Indisponibilité : ${u.libelle}`}
-            onClick={onIndispo}
-          />
         ))}
 
         {phases.map((p) => (
