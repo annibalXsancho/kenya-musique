@@ -8,7 +8,17 @@ type Data = CreateInput<'sessions'>;
 
 interface Props {
   initial?: Session;
-  defaults: { date: string; dureeMin: number; type: string; intention: string; sprintId?: string };
+  defaults: {
+    date: string;
+    dureeMin: number;
+    type: string;
+    intention: string;
+    sprintId?: string;
+    etapeId?: string;
+    creneauId?: string;
+    /** Condition de sortie prévue dans l'agenda, rappelée au-dessus du choix atteinte / non. */
+    doneQuand?: string;
+  };
   types: string[];
   sprints: { id: string; label: string }[];
   onSubmit: (data: Data) => void;
@@ -83,6 +93,8 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
       intention: intention.trim(),
       conditionAtteinte: atteinte,
       sprintId: sprintId || undefined,
+      etapeId: initial?.etapeId ?? defaults.etapeId,
+      creneauId: initial?.creneauId ?? defaults.creneauId,
       plus: lines(plus),
       moins: lines(moins),
       livrables: [
@@ -122,6 +134,7 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
       />
       <div>
         <div className={s.legend}>Condition de sortie atteinte</div>
+        {defaults.doneQuand && !initial && <p className={s.hint}>Prévue : {defaults.doneQuand}</p>}
         <Segmented
           label="Condition de sortie atteinte"
           value={atteinte ? 'oui' : 'non'}

@@ -40,3 +40,14 @@ export function formatShort(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
+
+// ── Date-heure « murale » locale : AAAA-MM-JJTHH:mm:00, sans fuseau (une séance à 18 h reste à 18 h) ──
+const p2 = (n: number) => String(n).padStart(2, '0');
+export const toLocalDT = (d: Date): string =>
+  `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}:00`;
+export const joinDT = (day: string, time: string): string => `${day}T${time.slice(0, 5)}:00`;
+/** Minutes de `a` à `b` (dates-heures locales). */
+export const minutesBetween = (a: string, b: string): number =>
+  Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60_000);
+export const addMinutes = (dt: string, n: number): string =>
+  toLocalDT(new Date(new Date(dt).getTime() + n * 60_000));

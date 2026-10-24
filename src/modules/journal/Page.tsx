@@ -5,6 +5,7 @@ import { create, remove, update } from '@core/db';
 import { useList, useReglages } from '@core/db/hooks';
 import { todayISO } from '@core/lib/dates';
 import type { CreateInput, Session } from '@core/model';
+import { sessionFromCreneau } from './prefill';
 import { SessionForm } from './components/SessionForm';
 import { SessionRow } from './components/SessionRow';
 import s from './Journal.module.css';
@@ -12,6 +13,7 @@ import s from './Journal.module.css';
 export default function Page() {
   const sessions = useList('sessions');
   const sprints = useList('sprints');
+  const creneaux = useList('creneaux');
   const reglages = useReglages();
   const [params, setParams] = useSearchParams();
   const [editing, setEditing] = useState<Session | 'new' | null>(null);
@@ -41,12 +43,15 @@ export default function Page() {
   );
 
   const last = [...(sessions ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  // « Valider » dans l'agenda arrive par /journal?nouvelle=1&creneau=<id> : formulaire pré-rempli depuis la séance.
+  const fromCreneau = (creneaux ?? []).find((c) => c.id === params.get('creneau'));
   const defaults = {
     date: todayISO(),
     dureeMin: last?.dureeMin ?? 45,
     type: last?.type ?? reglages.typesSession[0],
     intention: last?.intention ?? '',
     sprintId: last?.sprintId,
+    ...(fromCreneau ? sessionFromCreneau(fromCreneau) : {}),
   };
   const sprintOptions = (sprints ?? []).map((p) => ({
     id: p.id,
@@ -55,7 +60,11 @@ export default function Page() {
 
   async function save(data: CreateInput<'sessions'>) {
     if (current && current !== 'new') await update('sessions', current.id, data);
-    else await create('sessions', data);
+    else {
+      const created = await create('sessions', data);
+      if (data.creneauId)
+        await update('creneaux', data.creneauId, { statut: 'valide', sessionId: created.id });
+    }
     close();
   }
   async function del() {
@@ -130,7 +139,7 @@ export default function Page() {
       >
         {current && (
           <SessionForm
-            key={current === 'new' ? 'new' : current.id}
+            key={current === 'new' ? `new-${fromCreneau?.id ?? ''}` : current.id}
             initial={current === 'new' ? undefined : current}
             defaults={defaults}
             types={reglages.typesSession}

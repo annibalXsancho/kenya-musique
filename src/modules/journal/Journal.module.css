@@ -130,3 +130,9 @@
   color: #d70015;
   margin-top: var(--s-2);
 }
+
+.hint {
+  font-size: 14px;
+  color: var(--text-2);
+  margin: 0 0 var(--s-2);
+}
