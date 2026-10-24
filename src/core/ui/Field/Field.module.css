@@ -8,6 +8,8 @@
   font-weight: 600;
 }
 .control {
+  width: 100%;
+  min-width: 0;
   font: inherit;
   color: var(--text);
   background: var(--tile);

@@ -1,0 +1,92 @@
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+.filters > * {
+  min-width: 140px;
+}
+.legend {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--s-6);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--sep);
+  color: inherit;
+  font: inherit;
+  padding: var(--s-4) 0;
+  cursor: pointer;
+}
+.row:hover .intention {
+  color: var(--accent);
+}
+.date {
+  width: 84px;
+  flex-shrink: 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.intention {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur) var(--ease);
+}
+.meta {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}
+.details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: var(--s-4);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+.two > * {
+  min-width: 0;
+}

@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import { Button, Icon } from '@core/ui';
 import { modules } from './modules';
@@ -8,8 +8,20 @@ const DesignPage = lazy(() => import('./DesignPage'));
 
 export function App() {
   const navigate = useNavigate();
-  // Branché sur le formulaire de log en S2 ; en attendant, ouvre le Journal.
-  const newSession = () => navigate('/journal');
+  const newSession = () => navigate('/journal?nouvelle=1');
+
+  // Raccourci « N » : nouvelle session, sauf pendant une saisie.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (e.key.toLowerCase() !== 'n' || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (el.closest('input, textarea, select, [contenteditable], [role="dialog"]')) return;
+      e.preventDefault();
+      navigate('/journal?nouvelle=1');
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [navigate]);
 
   return (
     <div className={s.shell}>

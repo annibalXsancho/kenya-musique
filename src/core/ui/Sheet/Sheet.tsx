@@ -18,7 +18,7 @@ export function Sheet({ open, onClose, title, children }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    panel.current?.focus();
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;

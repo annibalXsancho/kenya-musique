@@ -7,6 +7,7 @@ import {
   Pill,
   ProgressBar,
   Segmented,
+  Select,
   Sheet,
   SyncIndicator,
   Tile,
@@ -97,6 +98,13 @@ export default function DesignPage() {
           <Field label="Intention" placeholder="Ce que je veux travailler" />
           <Field label="Durée (min)" type="number" hint="Minutes effectives" />
           <Field label="Note" multiline placeholder="Facultatif" />
+          <Select
+            label="Type"
+            options={[
+              { value: 'pratique', label: 'pratique' },
+              { value: 'étude', label: 'étude' },
+            ]}
+          />
           <Segmented
             label="Période"
             value={seg}

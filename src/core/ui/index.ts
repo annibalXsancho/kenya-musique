@@ -10,3 +10,4 @@ export { Sheet } from './Sheet/Sheet';
 export { SyncIndicator } from './SyncIndicator/SyncIndicator';
 export type { SyncState } from './SyncIndicator/SyncIndicator';
 export { Icon } from './Icon/Icon';
+export { Select } from './Select/Select';
