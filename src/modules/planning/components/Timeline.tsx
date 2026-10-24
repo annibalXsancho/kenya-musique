@@ -35,6 +35,7 @@ export function Timeline({
   const { start, end } = computeRange(dates, today);
   const months = monthsIn(start, end);
   const totalDays = diffDays(start, end) + 1;
+  const cours = indispos.filter((i) => i.type === 'cours');
   const rows = [...sprints].sort((a, b) => a.debut.localeCompare(b.debut) || a.numero - b.numero);
 
   // La frise remplit la largeur disponible ; elle ne défile que si elle deviendrait illisible.
@@ -87,7 +88,7 @@ export function Timeline({
               <b>Phases</b>
             </div>
             <div className={`${s.track} ${s.phaseRow}`}>
-              <Grid months={months} ppd={ppd} />
+              <Grid months={months} ppd={ppd} start={start} cours={cours} />
               {phases.map((p) => (
                 <button
                   key={p.id}
@@ -131,7 +132,7 @@ export function Timeline({
                 </small>
               </button>
               <div className={`${s.track} ${s.sprintRow}`}>
-                <Grid months={months} ppd={ppd} />
+                <Grid months={months} ppd={ppd} start={start} cours={cours} />
                 {sp.debutInitial && sp.finInitial && (slip !== 0 || startSlip !== 0) && (
                   <div
                     className={s.ghost}
@@ -163,10 +164,28 @@ export function Timeline({
   );
 }
 
-/** Traits verticaux des débuts de mois. */
-function Grid({ months, ppd }: { months: { key: string; offsetDays: number }[]; ppd: number }) {
+/** Traits verticaux des débuts de mois, et semaines de cours hachurées (comme dans « Pilotage musique »). */
+function Grid({
+  months,
+  ppd,
+  start,
+  cours,
+}: {
+  months: { key: string; offsetDays: number }[];
+  ppd: number;
+  start: string;
+  cours: { id: string; libelle: string; debut: string; fin: string }[];
+}) {
   return (
     <>
+      {cours.map((c) => (
+        <span
+          key={c.id}
+          className={s.cours}
+          style={{ left: xOf(c.debut, start, ppd), width: widthOf(c.debut, c.fin, ppd) }}
+          title={c.libelle}
+        />
+      ))}
       {months.map((m) => (
         <i key={m.key} className={s.gridLine} style={{ left: m.offsetDays * ppd }} />
       ))}
