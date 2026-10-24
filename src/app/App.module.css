@@ -26,15 +26,16 @@
   text-decoration: none;
   padding: 6px 14px;
   border-radius: var(--r-pill);
-  font-size: 14px;
+  font-size: 13px;
   transition: color var(--dur) var(--ease);
 }
 .link:hover {
   color: var(--text);
 }
 .link[aria-current='page'] {
-  color: var(--accent);
-  font-weight: 600;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 500;
 }
 .icon {
   display: none;

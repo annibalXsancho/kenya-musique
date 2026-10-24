@@ -1,19 +1,26 @@
 /* Jetons du design system (CLAUDE.md §9). Clair par défaut, sombre selon l'appareil.
    `data-theme` sur <html> force un thème (page /design). */
+/* DA du « Pilotage musique » : cockpit sombre, un seul accent bleu électrique, Geist.
+   Sombre par défaut ; `data-theme="light"` force un thème clair (page /design). */
 :root {
-  --bg: #ffffff;
-  --tile: #f5f5f7;
-  --text: #1d1d1f;
-  --text-2: #6e6e73;
-  --accent: #0071e3;
+  --bg: #09090b;
+  --tile: #111216;
+  --raised: #17191e;
+  --text: #ecedf0;
+  --text-2: #8b909a;
+  --faint: #5b606a;
+  --accent: #2d6bff;
+  --accent-hi: #6b95ff;
+  --accent-glow: rgba(45, 107, 255, 0.55);
   --accent-text: #ffffff;
-  --danger: #d70015; /* état « en retard » uniquement : toujours avec une icône et un libellé */
-  --sep: rgba(0, 0, 0, 0.08);
-  --glass: rgba(255, 255, 255, 0.72);
-  --shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-  --scrim: rgba(0, 0, 0, 0.32);
+  --danger: #ff6961; /* état « en retard » uniquement : toujours avec une icône et un libellé */
+  --sep: rgba(255, 255, 255, 0.09);
+  --glass: rgba(9, 9, 11, 0.84);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(0, 0, 0, 0.6);
 
-  --font: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --font: 'Geist Variable', 'Helvetica Neue', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   --s-1: 4px;
   --s-2: 8px;
@@ -23,43 +30,30 @@
   --s-6: 24px;
   --s-8: 32px;
   --s-12: 48px;
-  --r-sm: 12px;
-  --r-card: 20px;
-  --r-lg: 24px;
+  --r-sm: 9px;
+  --r-card: 14px;
+  --r-lg: 18px;
   --r-pill: 980px;
 
   --dur: 250ms;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #000000;
-    --tile: #1c1c1e;
-    --text: #f5f5f7;
-    --text-2: #a1a1a6;
-    --accent: #2997ff;
-    --danger: #ff6961;
-    --sep: rgba(255, 255, 255, 0.12);
-    --glass: rgba(0, 0, 0, 0.72);
-    --shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
-    --scrim: rgba(0, 0, 0, 0.6);
-  }
-}
-:root[data-theme='dark'] {
-  --bg: #000000;
-  --tile: #1c1c1e;
-  --text: #f5f5f7;
-  --text-2: #a1a1a6;
-  --accent: #2997ff;
-  --danger: #ff6961;
-  --sep: rgba(255, 255, 255, 0.12);
-  --glass: rgba(0, 0, 0, 0.72);
-  --shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
-  --scrim: rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 :root[data-theme='light'] {
+  --bg: #ffffff;
+  --tile: #f5f5f7;
+  --raised: #ebebef;
+  --text: #1d1d1f;
+  --text-2: #6e6e73;
+  --faint: #9a9aa0;
+  --accent: #2d6bff;
+  --accent-hi: #2d6bff;
+  --accent-glow: rgba(45, 107, 255, 0.35);
+  --danger: #d70015;
+  --sep: rgba(0, 0, 0, 0.09);
+  --glass: rgba(255, 255, 255, 0.84);
+  --shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  --scrim: rgba(0, 0, 0, 0.32);
   color-scheme: light;
 }
 
@@ -71,28 +65,32 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 17px;
-  line-height: 1.47;
-  letter-spacing: -0.01em;
+  font-size: 14px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 h1,
 h2,
 h3 {
   margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 h1 {
-  font-size: clamp(40px, 8vw, 64px);
+  font-size: clamp(28px, 4vw, 44px);
 }
 h2 {
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(20px, 2.6vw, 28px);
 }
 h3 {
-  font-size: 21px;
-  letter-spacing: -0.02em;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+::selection {
+  background: var(--accent);
+  color: #fff;
 }
 p {
   margin: 0;
