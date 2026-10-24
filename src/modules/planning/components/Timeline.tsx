@@ -15,9 +15,10 @@ interface Props {
   onPhase: (id: string) => void;
 }
 
-const HEAD = 30;
-const PHASE_ROW = 40;
-const LANE = 46;
+const HEAD = 40;
+const PHASE_ROW = 64;
+const LANE = 80;
+const MIN_HEIGHT = 380;
 
 export function Timeline({
   phases,
@@ -39,7 +40,7 @@ export function Timeline({
   const width = (diffDays(start, end) + 1) * ppd;
   const lanes = assignLanes(sprints);
   const laneCount = Math.max(1, ...lanes.map((l) => l.lane + 1));
-  const height = HEAD + PHASE_ROW + laneCount * LANE + 16;
+  const height = Math.max(MIN_HEIGHT, HEAD + PHASE_ROW + laneCount * LANE + 24);
   const todayX = xOf(today, start, ppd) + ppd / 2;
 
   // Au premier affichage, la frise est centrée un peu avant aujourd'hui.
@@ -70,7 +71,7 @@ export function Timeline({
             style={{
               left: xOf(p.debut, start, ppd),
               width: widthOf(p.debut, p.fin, ppd),
-              top: HEAD + 6,
+              top: HEAD + 8,
             }}
             onClick={() => onPhase(p.id)}
           >
@@ -90,7 +91,7 @@ export function Timeline({
                   style={{
                     left: xOf(sp.debutInitial, start, ppd),
                     width: widthOf(sp.debutInitial, sp.finInitial, ppd),
-                    top: top + 34,
+                    top: top + 60,
                   }}
                   title="Dates initiales"
                 />

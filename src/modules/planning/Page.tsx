@@ -77,7 +77,7 @@ export default function Page() {
             sprints={sp}
             indispos={indispos}
             today={todayISO()}
-            ppd={wide ? 8 : 6}
+            ppd={wide ? 12 : 9}
             selectedId={panel?.kind === 'sprint' ? panel.id : undefined}
             onSprint={(id) => setPanel({ kind: 'sprint', id })}
             onPhase={(id) => setPanel({ kind: 'phase', id })}
