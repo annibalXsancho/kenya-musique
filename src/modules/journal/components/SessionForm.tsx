@@ -21,6 +21,8 @@ interface Props {
   };
   types: string[];
   sprints: { id: string; label: string }[];
+  /** KR alimentés par les sessions (mode « sessions ») : la contribution se saisit ici, une seule fois. */
+  krs: { id: string; label: string; unite: string }[];
   onSubmit: (data: Data) => void;
   onDelete?: () => void;
 }
@@ -46,7 +48,7 @@ const formatLivrables = (l: Session['livrables']) =>
     .map((x) => (x.url ? `${x.label} | ${x.url}` : x.label))
     .join('\n');
 
-export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDelete }: Props) {
+export function SessionForm({ initial, defaults, types, sprints, krs, onSubmit, onDelete }: Props) {
   const [date, setDate] = useState(initial?.date ?? defaults.date);
   const [duree, setDuree] = useState(String(initial?.dureeMin ?? defaults.dureeMin));
   const [type, setType] = useState(initial?.type ?? defaults.type);
@@ -62,6 +64,9 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
       .map((l) => ({ id: l.fichier!, name: l.label })),
   );
   const [fileError, setFileError] = useState('');
+  const [contrib, setContrib] = useState<Record<string, string>>(
+    Object.fromEntries((initial?.contributions ?? []).map((c) => [c.krId, String(c.n)])),
+  );
   const [note, setNote] = useState(initial?.note ?? '');
 
   const dureeMin = Number(duree);
@@ -95,6 +100,13 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
       sprintId: sprintId || undefined,
       etapeId: initial?.etapeId ?? defaults.etapeId,
       creneauId: initial?.creneauId ?? defaults.creneauId,
+      contributions: [
+        // contributions à des KR qui n'existent plus ou ne sont plus listés : conservées telles quelles
+        ...(initial?.contributions ?? []).filter((c) => !krs.some((k) => k.id === c.krId)),
+        ...krs.flatMap((k) =>
+          Number(contrib[k.id]) > 0 ? [{ krId: k.id, n: Number(contrib[k.id]) }] : [],
+        ),
+      ],
       plus: lines(plus),
       moins: lines(moins),
       livrables: [
@@ -180,6 +192,23 @@ export function SessionForm({ initial, defaults, types, sprints, onSubmit, onDel
             onChange={(e) => setLivrables(e.target.value)}
             hint="Un lien par ligne, ou « libellé | https://… »"
           />
+          {krs.length > 0 && (
+            <div className={s.form}>
+              <div className={s.legend}>Contribution aux KR</div>
+              {krs.map((k) => (
+                <Field
+                  key={k.id}
+                  label={k.unite ? `${k.label} (${k.unite})` : k.label}
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  value={contrib[k.id] ?? ''}
+                  onChange={(e) => setContrib({ ...contrib, [k.id]: e.target.value })}
+                />
+              ))}
+            </div>
+          )}
           <div>
             <div className={s.legend}>Fichiers</div>
             {fichiers.map((f) => (

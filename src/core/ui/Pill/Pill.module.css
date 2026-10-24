@@ -19,3 +19,7 @@
   color: var(--text-2);
   border: 1.5px dashed var(--text-2);
 }
+.danger {
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg));
+  color: var(--danger);
+}

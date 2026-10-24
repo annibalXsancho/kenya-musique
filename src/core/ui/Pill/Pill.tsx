@@ -6,7 +6,7 @@ export function Pill({
   tone = 'neutral',
   children,
 }: {
-  tone?: 'accent' | 'neutral' | 'backlog';
+  tone?: 'accent' | 'neutral' | 'backlog' | 'danger';
   children: ReactNode;
 }) {
   return <span className={`${s.pill} ${s[tone]}`}>{children}</span>;

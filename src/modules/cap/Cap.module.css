@@ -1,0 +1,323 @@
+.lead {
+  margin-top: var(--s-3);
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+.muted {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-8);
+}
+.tileNote {
+  margin-top: var(--s-4);
+}
+
+.vision {
+  margin-top: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.visionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.visionText {
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-weight: 600;
+  max-width: 34ch;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-top: var(--s-12);
+}
+
+.objectifs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+.objectif {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.objHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.krs {
+  display: flex;
+  flex-direction: column;
+}
+.kr {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--sep);
+  color: inherit;
+  font: inherit;
+  padding: var(--s-4) 0;
+  cursor: pointer;
+}
+.kr:hover .krTitle {
+  color: var(--accent);
+}
+.krTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.krTitle {
+  font-weight: 600;
+  min-width: 0;
+  transition: color var(--dur) var(--ease);
+}
+.krMeta {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.krMeta strong {
+  color: var(--text);
+}
+
+/* Jauge : remplissage = réel, repère = prévu */
+.meter {
+  position: relative;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--sep);
+}
+.meterFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 350ms var(--ease);
+}
+.meterDanger {
+  background: var(--danger);
+}
+.meterTick {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.55;
+}
+
+/* Graphiques */
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.chartHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.plot {
+  width: 100%;
+  min-width: 0;
+}
+.plot :global(.recharts-wrapper),
+.plot :global(.recharts-surface) {
+  outline: none;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.keyBar {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.keyLine {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+.tip {
+  background: var(--bg);
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px var(--sep);
+  border-radius: 12px;
+  padding: var(--s-3) var(--s-4);
+  min-width: 150px;
+}
+.tipTitle {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: var(--s-2);
+}
+.tipRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.tipRow strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.tipRow span {
+  color: var(--text-2);
+}
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-2);
+  font-size: 13px;
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-bottom: 1px solid var(--sep);
+}
+.table td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-bottom: 1px solid var(--sep);
+  font-variant-numeric: tabular-nums;
+}
+.okLine {
+  color: var(--text-2);
+}
+
+/* Panneaux */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.stack h3 {
+  margin-bottom: var(--s-2);
+}
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.bigRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+.big {
+  font-size: 56px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}
+.two > * {
+  min-width: 0;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+.legendLabel {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+.feedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--sep);
+}
+.feedDate {
+  width: 84px;
+  flex-shrink: 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.feedMain {
+  flex: 1;
+  min-width: 0;
+}
+.slips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}

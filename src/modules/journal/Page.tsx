@@ -14,6 +14,7 @@ export default function Page() {
   const sessions = useList('sessions');
   const sprints = useList('sprints');
   const creneaux = useList('creneaux');
+  const krsAll = useList('krs');
   const reglages = useReglages();
   const [params, setParams] = useSearchParams();
   const [editing, setEditing] = useState<Session | 'new' | null>(null);
@@ -53,6 +54,9 @@ export default function Page() {
     sprintId: last?.sprintId,
     ...(fromCreneau ? sessionFromCreneau(fromCreneau) : {}),
   };
+  const krs = (krsAll ?? [])
+    .filter((k) => k.mode === 'sessions')
+    .map((k) => ({ id: k.id, label: k.libelle, unite: k.unite }));
   const sprintOptions = (sprints ?? []).map((p) => ({
     id: p.id,
     label: `S${p.numero} · ${p.sujet}`,
@@ -144,6 +148,7 @@ export default function Page() {
             defaults={defaults}
             types={reglages.typesSession}
             sprints={sprintOptions}
+            krs={krs}
             onSubmit={save}
             onDelete={current === 'new' ? undefined : del}
           />
