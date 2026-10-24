@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Doc } from '@core/model';
-import { diffDays } from '@core/lib/dates';
-import { assignLanes, computeRange, monthsIn, widthOf, xOf } from '../timeline';
+import { diffDays, formatShort } from '@core/lib/dates';
+import { computeRange, monthsIn, widthOf, xOf } from '../timeline';
 import s from '../Planning.module.css';
 
 interface Props {
@@ -9,23 +9,20 @@ interface Props {
   sprints: Doc<'sprints'>[];
   indispos: Doc<'indisponibilites'>[];
   today: string;
-  ppd: number;
   selectedId?: string;
   onSprint: (id: string) => void;
   onPhase: (id: string) => void;
 }
 
-const HEAD = 40;
-const PHASE_ROW = 64;
-const LANE = 80;
-const MIN_HEIGHT = 380;
+/** Largeur minimale d'un jour : en dessous, la frise défile au lieu de se tasser. */
+const MIN_PPD = 4;
 
+/** Frise « une ligne par sprint » : libellés à gauche, barres alignées sur les mois. */
 export function Timeline({
   phases,
   sprints,
   indispos,
   today,
-  ppd,
   selectedId,
   onSprint,
   onPhase,
@@ -37,93 +34,142 @@ export function Timeline({
   ];
   const { start, end } = computeRange(dates, today);
   const months = monthsIn(start, end);
-  const width = (diffDays(start, end) + 1) * ppd;
-  const lanes = assignLanes(sprints);
-  const laneCount = Math.max(1, ...lanes.map((l) => l.lane + 1));
-  const height = Math.max(MIN_HEIGHT, HEAD + PHASE_ROW + laneCount * LANE + 24);
+  const totalDays = diffDays(start, end) + 1;
+  const rows = [...sprints].sort((a, b) => a.debut.localeCompare(b.debut) || a.numero - b.numero);
+
+  // La frise remplit la largeur disponible ; elle ne défile que si elle deviendrait illisible.
+  const box = useRef<HTMLDivElement>(null);
+  const [boxWidth, setBoxWidth] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setBoxWidth(el.clientWidth));
+    ro.observe(el);
+    setBoxWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  const labelW = boxWidth < 560 ? 112 : 210;
+  const ppd = Math.max(MIN_PPD, (boxWidth - labelW) / totalDays);
+  const trackW = totalDays * ppd;
   const todayX = xOf(today, start, ppd) + ppd / 2;
 
-  // Au premier affichage, la frise est centrée un peu avant aujourd'hui.
-  const scroller = useRef<HTMLDivElement>(null);
+  // Au premier affichage, si ça défile, on se place un peu avant aujourd'hui.
   useEffect(() => {
-    scroller.current?.scrollTo({ left: Math.max(0, todayX - 140) });
+    const el = box.current;
+    if (el && el.scrollWidth > el.clientWidth) el.scrollTo({ left: Math.max(0, todayX - 200) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [boxWidth > 0]);
 
   return (
-    <div className={s.scroller} ref={scroller}>
-      <div className={s.canvas} style={{ width, height }}>
-        {months.map((m, i) => (
-          <div
-            key={m.key}
-            className={i % 2 ? `${s.month} ${s.monthAlt}` : s.month}
-            style={{ left: m.offsetDays * ppd, width: m.days * ppd, height }}
-          >
-            <span className={s.monthLabel}>{m.label}</span>
-          </div>
-        ))}
+    <div className={s.frame} ref={box}>
+      <div
+        className={s.grid}
+        style={{ gridTemplateColumns: `${labelW}px ${trackW}px`, width: labelW + trackW }}
+      >
+        {/* En-tête : mois */}
+        <div className={`${s.label} ${s.corner}`} />
+        <div className={`${s.track} ${s.monthsRow}`}>
+          {months.map((m) => (
+            <span key={m.key} className={s.monthTick} style={{ left: m.offsetDays * ppd }}>
+              {new Date(`${m.key}-01T00:00:00Z`).toLocaleDateString('fr-FR', {
+                month: 'short',
+                year: m.key.endsWith('-01') ? 'numeric' : undefined,
+                timeZone: 'UTC',
+              })}
+            </span>
+          ))}
+        </div>
 
-        {phases.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={s.phase}
-            style={{
-              left: xOf(p.debut, start, ppd),
-              width: widthOf(p.debut, p.fin, ppd),
-              top: HEAD + 8,
-            }}
-            onClick={() => onPhase(p.id)}
-          >
-            {p.nom}
-          </button>
-        ))}
+        {/* Phases */}
+        {phases.length > 0 && (
+          <>
+            <div className={s.label}>
+              <b>Phases</b>
+            </div>
+            <div className={`${s.track} ${s.phaseRow}`}>
+              <Grid months={months} ppd={ppd} />
+              {phases.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={s.phaseBar}
+                  style={{ left: xOf(p.debut, start, ppd), width: widthOf(p.debut, p.fin, ppd) }}
+                  title={p.nom}
+                  onClick={() => onPhase(p.id)}
+                >
+                  {p.nom}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
-        {lanes.map(({ item: sp, lane }) => {
-          const top = HEAD + PHASE_ROW + lane * LANE;
+        {/* Un sprint par ligne */}
+        {rows.map((sp) => {
           const slip = sp.finInitial ? diffDays(sp.finInitial, sp.fin) : 0;
           const startSlip = sp.debutInitial ? diffDays(sp.debutInitial, sp.debut) : 0;
+          const width = widthOf(sp.debut, sp.fin, ppd);
           return (
-            <div key={sp.id}>
-              {sp.debutInitial && sp.finInitial && (slip !== 0 || startSlip !== 0) && (
-                <div
-                  className={s.ghost}
-                  style={{
-                    left: xOf(sp.debutInitial, start, ppd),
-                    width: widthOf(sp.debutInitial, sp.finInitial, ppd),
-                    top: top + 60,
-                  }}
-                  title="Dates initiales"
-                />
-              )}
+            <div key={sp.id} className={s.rowContents}>
               <button
                 type="button"
-                className={`${s.sprint} ${s[sp.statut]} ${selectedId === sp.id ? s.selected : ''}`}
-                style={{
-                  left: xOf(sp.debut, start, ppd),
-                  width: widthOf(sp.debut, sp.fin, ppd),
-                  top,
-                }}
+                className={`${s.label} ${s.labelBtn} ${selectedId === sp.id ? s.labelSel : ''}`}
                 onClick={() => onSprint(sp.id)}
               >
-                <span className={s.sprintLabel}>
+                <b>
                   S{sp.numero} · {sp.sujet}
-                </span>
-                {slip !== 0 && (
-                  <span className={s.slip}>
-                    {slip > 0 ? '+' : ''}
-                    {slip} j
-                  </span>
-                )}
+                </b>
+                <small>
+                  {formatShort(sp.debut)} → {formatShort(sp.fin)}
+                  {slip !== 0 && (
+                    <span className={s.slipText}>
+                      {' '}
+                      {slip > 0 ? '+' : ''}
+                      {slip} j
+                    </span>
+                  )}
+                </small>
               </button>
+              <div className={`${s.track} ${s.sprintRow}`}>
+                <Grid months={months} ppd={ppd} />
+                {sp.debutInitial && sp.finInitial && (slip !== 0 || startSlip !== 0) && (
+                  <div
+                    className={s.ghost}
+                    style={{
+                      left: xOf(sp.debutInitial, start, ppd),
+                      width: widthOf(sp.debutInitial, sp.finInitial, ppd),
+                    }}
+                    title="Dates initiales"
+                  />
+                )}
+                <button
+                  type="button"
+                  className={`${s.bar} ${s[sp.statut]} ${selectedId === sp.id ? s.selected : ''}`}
+                  style={{ left: xOf(sp.debut, start, ppd), width: Math.max(width, 10) }}
+                  title={`S${sp.numero} · ${sp.sujet}`}
+                  onClick={() => onSprint(sp.id)}
+                />
+              </div>
             </div>
           );
         })}
 
-        <div className={s.today} style={{ left: todayX, height }}>
-          <span className={s.todayLabel}>Aujourd’hui</span>
+        {/* Aujourd'hui */}
+        <div className={s.todayLayer} style={{ left: labelW }}>
+          <div className={s.todayLine} style={{ left: todayX }} title="Aujourd’hui" />
         </div>
       </div>
     </div>
+  );
+}
+
+/** Traits verticaux des débuts de mois. */
+function Grid({ months, ppd }: { months: { key: string; offsetDays: number }[]; ppd: number }) {
+  return (
+    <>
+      {months.map((m) => (
+        <i key={m.key} className={s.gridLine} style={{ left: m.offsetDays * ppd }} />
+      ))}
+    </>
   );
 }

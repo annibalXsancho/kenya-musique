@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { Button, EmptyState, Sheet } from '@core/ui';
 import { useList } from '@core/db/hooks';
 import { todayISO } from '@core/lib/dates';
-import { useMediaQuery } from '@core/lib/useMediaQuery';
 import { Timeline } from './components/Timeline';
 import { PhaseForm } from './components/PhaseForm';
 import { SprintPanel } from './components/SprintPanel';
@@ -17,7 +16,6 @@ export default function Page() {
   const sprints = useList('sprints');
   const indispos = useList('indisponibilites');
   const [panel, setPanel] = useState<Panel>(null);
-  const wide = useMediaQuery('(min-width: 768px)');
   const close = useCallback(() => setPanel(null), []);
 
   const loaded = phases && sprints && indispos;
@@ -77,7 +75,6 @@ export default function Page() {
             sprints={sp}
             indispos={indispos}
             today={todayISO()}
-            ppd={wide ? 12 : 9}
             selectedId={panel?.kind === 'sprint' ? panel.id : undefined}
             onSprint={(id) => setPanel({ kind: 'sprint', id })}
             onPhase={(id) => setPanel({ kind: 'phase', id })}
@@ -87,7 +84,10 @@ export default function Page() {
               <i className={`${s.swatch} ${s.swEnCours}`} /> En cours
             </li>
             <li>
-              <i className={`${s.swatch} ${s.swGrey}`} /> Planifié / terminé
+              <i className={`${s.swatch} ${s.swPlan}`} /> Planifié
+            </li>
+            <li>
+              <i className={`${s.swatch} ${s.swGrey}`} /> Terminé
             </li>
             <li>
               <i className={`${s.swatch} ${s.swBacklog}`} /> Backlog
