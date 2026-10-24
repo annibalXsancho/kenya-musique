@@ -5,3 +5,5 @@ dist
 *.local
 coverage
 tsconfig.tsbuildinfo
+.tools
+CLAUDE.md

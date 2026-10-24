@@ -5,15 +5,9 @@ L'app est servie par **GitHub Pages** (le code). Tes données ne sont **pas** da
 Ce qui est déjà prêt : l'app, la PWA, le workflow de déploiement (`.github/workflows/pages.yml`), l'export JSON.
 Ce que seul toi peux faire : créer les dépôts, le jeton, activer Pages. Compte une quinzaine de minutes.
 
-## ⚠️ À savoir avant de publier le code
+## À savoir : dépôt public
 
-Pour que Pages soit gratuit, **le dépôt du code doit être public** (Pages sur dépôt privé demande un abonnement payant). Donc :
-
-- Le code est lisible par tous, **y compris `CLAUDE.md`** (plan, décisions, ta section « Notes d'Enzo ») et tout l'historique git.
-- Les commits portent l'adresse e-mail de l'auteur. Pour la masquer : GitHub → Settings → Emails → « Keep my email addresses private », puis `git config user.email "<id>+<pseudo>@users.noreply.github.com"`.
-- Tes **données** restent privées (dépôt séparé). Ne mets jamais de jeton ni de données dans le dépôt public.
-
-Si tu préfères que `CLAUDE.md` reste privé, dis-le-moi : je le sors du dépôt public.
+Pour que Pages soit gratuit, **le dépôt du code est public**. Le code est donc lisible par tous. `CLAUDE.md` (notes de projet) reste **uniquement sur ton Mac** : il est exclu du dépôt. Tes **données** restent dans le dépôt privé séparé. Ne mets jamais de jeton ni de données dans le dépôt public.
 
 ## 1. Créer les deux dépôts (toi)
 
