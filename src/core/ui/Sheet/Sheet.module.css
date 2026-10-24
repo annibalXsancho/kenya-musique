@@ -1,0 +1,62 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+.side,
+.bottom {
+  position: absolute;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+.side {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 100%);
+  border-radius: var(--r-lg) 0 0 var(--r-lg);
+}
+.bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 88dvh;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom::before {
+  content: '';
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--sep);
+  margin: 8px auto 0;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-5) var(--s-6) var(--s-3);
+}
+.close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--tile);
+  color: var(--text-2);
+  font-size: 14px;
+  cursor: pointer;
+}
+.body {
+  padding: var(--s-2) var(--s-6) var(--s-8);
+  overflow-y: auto;
+}

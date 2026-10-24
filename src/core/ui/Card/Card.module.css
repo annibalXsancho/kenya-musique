@@ -1,0 +1,5 @@
+.card {
+  background: var(--tile);
+  border-radius: var(--r-card);
+  padding: var(--s-6);
+}

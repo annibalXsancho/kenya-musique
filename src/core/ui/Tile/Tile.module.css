@@ -1,0 +1,16 @@
+.label {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.value {
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-top: var(--s-2);
+}
+.hint {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-top: var(--s-1);
+}

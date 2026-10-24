@@ -1,0 +1,21 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: var(--r-pill);
+}
+.accent {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.neutral {
+  background: var(--tile);
+  color: var(--text-2);
+}
+.backlog {
+  background: transparent;
+  color: var(--text-2);
+  border: 1.5px dashed var(--text-2);
+}

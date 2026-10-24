@@ -1,0 +1,30 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.control {
+  font: inherit;
+  color: var(--text);
+  background: var(--tile);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  resize: vertical;
+  transition: border-color var(--dur) var(--ease);
+}
+.control::placeholder {
+  color: var(--text-2);
+}
+.control:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.hint {
+  font-size: 13px;
+  color: var(--text-2);
+}
