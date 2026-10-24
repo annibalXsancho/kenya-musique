@@ -8,4 +8,5 @@ export const agenda: ModuleDef = {
   icon: 'agenda',
   order: 3,
   Page: lazy(() => import('./Page')),
+  HomeCard: lazy(() => import('./HomeCard')),
 };

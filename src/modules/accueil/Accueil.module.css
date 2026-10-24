@@ -1,0 +1,108 @@
+.date {
+  color: var(--text-2);
+  font-size: 14px;
+  text-transform: capitalize;
+}
+.lead {
+  margin: var(--s-2) 0 var(--s-4);
+  font-size: 17px;
+  color: var(--text-2);
+}
+.muted {
+  color: var(--text-2);
+  font-size: 14px;
+}
+.label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.big {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: var(--s-1) 0;
+}
+
+.next {
+  margin-top: var(--s-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.nextText {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+.dots {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 3px;
+  margin-top: var(--s-3);
+}
+.dot,
+.dotOn {
+  height: 12px;
+  border-radius: 4px;
+}
+.dot {
+  background: var(--sep);
+}
+.dotOn {
+  background: var(--accent);
+}
+
+.block {
+  margin-top: var(--s-8);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  margin: var(--s-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  background: var(--tile);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  text-decoration: none;
+}
+.rowMain {
+  font-weight: 500;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+}
+.cardWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.move {
+  display: flex;
+  gap: var(--s-2);
+}

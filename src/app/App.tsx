@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import { Button, Icon } from '@core/ui';
+import { ModulesContext } from '@core/modules';
 import { useAccount } from '@core/auth/client';
 import { startSync } from '@core/sync/manager';
 import { LoginPage } from './LoginPage';
@@ -57,12 +58,14 @@ function Shell() {
       </div>
       <main className={s.main}>
         <Suspense fallback={null}>
-          <Routes>
-            {modules.map((m) => (
-              <Route key={m.id} path={m.path} element={<m.Page />} />
-            ))}
-            <Route path="/design" element={<DesignPage />} />
-          </Routes>
+          <ModulesContext value={modules}>
+            <Routes>
+              {modules.map((m) => (
+                <Route key={m.id} path={m.path} element={<m.Page />} />
+              ))}
+              <Route path="/design" element={<DesignPage />} />
+            </Routes>
+          </ModulesContext>
         </Suspense>
       </main>
       <button type="button" className={s.fab} onClick={newSession}>

@@ -8,4 +8,5 @@ export const planning: ModuleDef = {
   icon: 'planning',
   order: 2,
   Page: lazy(() => import('./Page')),
+  HomeCard: lazy(() => import('./HomeCard')),
 };
